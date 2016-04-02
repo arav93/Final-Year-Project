@@ -17,6 +17,8 @@
  */
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -25,6 +27,40 @@ import java.sql.Statement;
 import java.util.*;
 
 public class Apriori {
+    
+    public static void PushToDB(String line, Statement s) throws SQLException
+    {
+       int beg=0;
+       for(int i=0;i<line.length();i++)
+       {
+           if(line.charAt(i)=='-')
+           {
+               String temp=line.substring(beg,i);
+               s.executeUpdate("insert into fp values ('"+temp+"');");
+               beg=i+1;
+           }
+       }
+    }
+    
+    public static void PrintFPs(String[] D, String[] G,Statement s) throws SQLException
+    {
+        ResultSet rs=s.executeQuery("select * from fp");
+        
+        while(rs.next())
+        {
+            String FItem = rs.getString("fp");
+            for(int i=0;i<FItem.length();i++)
+            {
+                if(FItem.charAt(i)>=3)
+                    System.out.println(G[i]);
+                else
+                    System.out.println(D[i]);
+                    
+            }
+        }
+                
+    }
+ 
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException 
     {
@@ -34,6 +70,8 @@ public class Apriori {
                 //Connection d = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "amrita123");
                 Statement st=c.createStatement();
                 
+                Scanner in = new Scanner(System.in);
+
                 ResultSet rs = st.executeQuery("select DISTINCT(gender) from college");
                 
                 String[] G = new String[3];
@@ -53,7 +91,6 @@ public class Apriori {
                 while(rs.next())
                 {
                     D[i]=rs.getString("dept");
-                    //System.out.println(D[i]);
                     i++;
                 }
                 
@@ -65,73 +102,44 @@ public class Apriori {
                 {
                     String g=rs.getString("gender");
                     String d=rs.getString("dept");
-                    String n=rs.getString("Name");
-                    
-                    /*if(g.equals(G[0]))
-                        S[i]="100";
-                    else
-                        if(g.equals(G[1]))
-                            S[i]="010";
-                    else
-                            S[i]="001";*/
-                    
+        
                     String K = new String("0");                   
                     for(int p=0;p<(G.length+D.length)-1;p++)
                         K+="0";
 
                     char[] P =K.toCharArray(); 
-                    
                     int j;
                     for(j=0;j<G.length;j++)
                     {
                         if(g.equals(G[j]))
                             P[j]='1';
                     }
-                    
-                  //System.out.print(P);
-                  //System.out.println("\n");
-                  
-                 
+
                   for(int k=0;k<D.length;k++ )
                   {
                       if(d.equals(D[k]))
-                            P[k+j]='1';
-                      
+                            P[k+j]='1';    
                   }
                     
                   S[i] = new String(P);
-                                               
-                 
-                  
-                 /*   if(d.equals(D[0]))
-                        S[i]+="10000";
-                    else
-                        if(d.equals(D[1]))
-                        S[i]+="01000";
-                    else
-                    if(d.equals(D[2]))
-                        S[i]+="00100";
-                    else
-                    if(d.equals(D[3]))
-                        S[i]+="00010";
-                    else
-                        S[i]+="00001";*/
-                  
-                  System.out.println(S[i]);
                  writer.println(S[i].replaceAll(".(?!$)", "$0 "));
                    
                    i++;
                 } 
                 
-                //System.out.println(i);
-                
                 writer.close();
-                
-                
-                
+         
                     
-        AprioriCalculation ap = new AprioriCalculation();
-        ap.aprioriProcess();
+        //AprioriCalculation ap = new AprioriCalculation();
+        //ap.aprioriProcess();
+        
+        
+
+    BufferedReader inp = new BufferedReader(new FileReader("I:\\Text\\S8\\First Review\\output.txt"));
+    String line = inp.readLine();
+    PushToDB(line,st);
+   // PrintFPs(D,G,st);    
+        
                                  
     }
         catch(Exception e)
@@ -161,7 +169,7 @@ class AprioriCalculation
      * Parameters   : None
      * Return       : None
      *************************************************************************/
-    public void aprioriProcess()
+    public void aprioriProcess() throws FileNotFoundException, UnsupportedEncodingException
     {
         Date d; //date object for timing purposes
         long start, end; //start and end time
@@ -200,6 +208,18 @@ class AprioriCalculation
 
         //display the execution time
         System.out.println("Execution time is: "+((double)(end-start)/1000) + " seconds.");
+    }
+    
+     /************************************************************************
+     * Method Name  : GetCandidates
+     * Purpose      : get the candidates to the main
+     * Parameters   : Candidates
+     * Return       : Candidates
+     *************************************************************************/
+    
+    public Vector<String> GetCandidates(Vector<String> candidates)
+    {
+        return candidates;
     }
 
     /************************************************************************
@@ -313,8 +333,8 @@ class AprioriCalculation
             fw= new FileWriter(outputFile);
             file_out = new BufferedWriter(fw);
             //put the number of transactions into the output file
-            file_out.write(numTransactions + "\n");
-            file_out.write(numItems + "\n******\n");
+            //file_out.write(numTransactions + "\n");
+            //file_out.write(numItems + "\n******\n");
             file_out.close();
         }
         //if there is an error, print the message
@@ -461,10 +481,10 @@ class AprioriCalculation
                     {
                         frequentCandidates.add(candidates.get(i));
                         //put the frequent itemset into the output file
-                        file_out.write(candidates.get(i) + "," + count[i]/(double)numTransactions + "\n");
+                        file_out.write(candidates.get(i) + ",");// + count[i]/(double)numTransactions + "\n");
                     }
                 }
-                file_out.write("-\n");
+                file_out.write("-");
                 file_out.close();
         }
         //if error at all in this process, catch it and print the error messate
