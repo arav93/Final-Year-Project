@@ -75,7 +75,11 @@ public class Apriori {
                     else
                             S[i]="001";*/
                     
-                    char[] P ="00000000".toCharArray();
+                    String K = new String("0");                   
+                    for(int p=0;p<(G.length+D.length)-1;p++)
+                        K+="0";
+
+                    char[] P =K.toCharArray(); 
                     
                     int j;
                     for(j=0;j<G.length;j++)
