@@ -31,34 +31,71 @@ public class Apriori {
     public static void PushToDB(String line, Statement s) throws SQLException
     {
        int beg=0;
-       for(int i=0;i<line.length();i++)
+       for(int i=0;i<line.length()-1;i++)
        {
-           if(line.charAt(i)=='-')
+           if(line.charAt(i)==',')
            {
                String temp=line.substring(beg,i);
                s.executeUpdate("insert into fp values ('"+temp+"');");
                beg=i+1;
+               
            }
        }
     }
     
-    public static void PrintFPs(String[] D, String[] G,Statement s) throws SQLException
+    public static void PrintFPs(String[] D, String[] G,String[] Sec, String[] Cre, String[] Loc,Statement s,Statement st) throws SQLException
     {
         ResultSet rs=s.executeQuery("select * from fp");
-        
+        System.out.println("Itemset of size 1");
         while(rs.next())
         {
             String FItem = rs.getString("fp");
-            for(int i=0;i<FItem.length();i++)
-            {
-                if(FItem.charAt(i)>=3)
-                    System.out.println(G[i]);
-                else
-                    System.out.println(D[i]);
+            int temp=2;
+            int beg=1;
+                if(FItem.contains("-"))
+                {
+                    System.out.println("Itemset of size "+temp);
+                    temp++;
+                for(int i=0;i<FItem.length();i++)
+                {     
+                    if(FItem.charAt(i)==' ')
+                    {
+                        String no = FItem.substring(beg, i);
+                        beg=i+1;
+                        ResultSet rst=st.executeQuery("select item,num from map where num='"+no+"'");
                     
-            }
-        }
-                
+                        while(rst.next())
+                        {
+                        String name =    rst.getString("item");
+                        String num  =   rst.getString("num");  
+                        System.out.println(" "+name);
+                        }
+                    }
+          
+                    if(i+1==FItem.length())
+                    {
+                    String no=FItem.substring(beg, i+1);
+                    ResultSet rst=st.executeQuery("select item,num from map where num='"+no+"'");
+                    while(rst.next())
+                        {
+                        String name =    rst.getString("item");
+                        String num  =   rst.getString("num");  
+                        System.out.println(" "+name);
+                        }
+                    }
+                }
+                }
+               
+                    ResultSet rst=st.executeQuery("select item,num from map where num='"+FItem+"'");
+                    
+                    while(rst.next())
+                    {
+                        String name =    rst.getString("item");
+                        String num  =   rst.getString("num");  
+                        System.out.println(" "+name);
+                        
+                    }
+        }            
     }
  
 
@@ -69,42 +106,89 @@ public class Apriori {
                 Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "amrita123");
                 //Connection d = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "amrita123");
                 Statement st=c.createStatement();
+                Statement stc=c.createStatement();
                 
                 Scanner in = new Scanner(System.in);
 
-                ResultSet rs = st.executeQuery("select DISTINCT(gender) from college");
+                ResultSet rs = stc.executeQuery("select DISTINCT(gender) from college");
                 
                 String[] G = new String[3];
                 int i=0;
                 while(rs.next())
                 {
                     G[i]=rs.getString("gender");
-                    //System.out.println(G[i]);
+                    st.executeUpdate("insert into map values ('"+G[i]+"','"+(i+1)+"');");
                     i++;      
                 }
+                
+                int tot=i+1;
                
                 
-                rs = st.executeQuery("select DISTINCT(dept) from college");
+                rs = stc.executeQuery("select DISTINCT(dept) from college");
                 
                 String[] D = new String[5];
                 i=0;
                 while(rs.next())
                 {
                     D[i]=rs.getString("dept");
+                    st.executeUpdate("insert into map values ('"+D[i]+"','"+(tot+i)+"');");
                     i++;
                 }
                 
-                rs = st.executeQuery("select name,gender,dept from college");
+                tot+=i;
+                
+                rs = stc.executeQuery("select DISTINCT(sec) from college");
+                
+                String[] Sec = new String[2];
+                i=0;
+                while(rs.next())
+                {
+                    Sec[i]=rs.getString("sec");
+                    st.executeUpdate("insert into map values ('"+Sec[i]+"','"+(tot+i)+"');");
+                    i++;
+                }
+                
+                tot+=i;
+                
+                rs = stc.executeQuery("select DISTINCT(credits) from college");
+                
+                String[] Cre = new String[6];
+                i=0;
+                while(rs.next())
+                {
+                    Cre[i]=rs.getString("credits");
+                    st.executeUpdate("insert into map values ('"+Cre[i]+"','"+(tot+i)+"');");
+                    i++;
+                }
+                
+                tot+=i;
+                
+                rs = stc.executeQuery("select DISTINCT(location) from college");
+                
+                String[] Loc = new String[230];
+                i=0;
+                while(rs.next())
+                {
+                    Loc[i]=rs.getString("location");
+                    st.executeUpdate("insert into map values ('"+Loc[i]+"','"+(tot+i)+"');");
+                    i++;
+                }
+                
+                
+                rs = st.executeQuery("select gender,dept,sec,credits,location from college");
                 String[] S = new String[500];
                 i=0;
                 PrintWriter writer = new PrintWriter("I:\\Text\\S8\\First Review\\data.txt", "UTF-8");
                 while(rs.next())
                 {
-                    String g=rs.getString("gender");
-                    String d=rs.getString("dept");
+                    String g    = rs.getString("gender");
+                    String d    = rs.getString("dept");
+                    String sec  = rs.getString("sec");
+                    String cre    = rs.getString("credits");
+                    String loc    = rs.getString("location");
         
                     String K = new String("0");                   
-                    for(int p=0;p<(G.length+D.length)-1;p++)
+                    for(int p=0;p<(G.length+D.length+Sec.length+Cre.length+Loc.length)-1;p++)
                         K+="0";
 
                     char[] P =K.toCharArray(); 
@@ -114,11 +198,39 @@ public class Apriori {
                         if(g.equals(G[j]))
                             P[j]='1';
                     }
-
-                  for(int k=0;k<D.length;k++ )
+                  int lastpos=j;
+                  int k;
+                  for(k=0;k<D.length;k++ )
                   {
                       if(d.equals(D[k]))
-                            P[k+j]='1';    
+                            P[k+lastpos]='1';    
+                  }
+                  
+                  lastpos+=k;
+                  
+                  int ks;
+                  for(ks=0;ks<Sec.length;ks++ )
+                  {
+                      if(sec.equals(D[ks]))
+                            P[ks+lastpos]='1';    
+                  }
+                  
+                  lastpos+=ks;
+                  
+                  int kc;
+                  for(kc=0;kc<Cre.length;kc++ )
+                  {
+                      if(cre.equals(Cre[kc]))
+                            P[kc+lastpos]='1';    
+                  }
+                  
+                  lastpos+=kc;
+                  
+                  int kl;
+                  for(kl=0;kl<Loc.length;kl++ )
+                  {
+                      if(loc.equals(Loc[kl]))
+                            P[kl+lastpos]='1';    
                   }
                     
                   S[i] = new String(P);
@@ -126,6 +238,8 @@ public class Apriori {
                    
                    i++;
                 } 
+                
+                //System.out.println(i+" "+(G.length+D.length+Sec.length+Cre.length+Loc.length));
                 
                 writer.close();
          
@@ -138,10 +252,12 @@ public class Apriori {
     BufferedReader inp = new BufferedReader(new FileReader("I:\\Text\\S8\\First Review\\output.txt"));
     String line = inp.readLine();
     PushToDB(line,st);
-   // PrintFPs(D,G,st);    
+    PrintFPs(D,G,Sec,Cre,Loc,st,stc);    
         
                                  
     }
+        
+        
         catch(Exception e)
         {
             e.printStackTrace();
