@@ -33,9 +33,15 @@ public class Apriori {
        int beg=0;
        for(int i=0;i<line.length()-1;i++)
        {
+          
            if(line.charAt(i)==',')
            {
                String temp=line.substring(beg,i);
+               if(temp.charAt(0)=='-')
+               {
+                   s.executeUpdate("insert into fp values ('-');");
+                   temp = temp.substring(1);
+               }
                s.executeUpdate("insert into fp values ('"+temp+"');");
                beg=i+1;
                
@@ -46,15 +52,17 @@ public class Apriori {
     public static void PrintFPs(String[] D, String[] G,String[] Sec, String[] Cre, String[] Loc,Statement s,Statement st) throws SQLException
     {
         ResultSet rs=s.executeQuery("select * from fp");
-        System.out.println("Itemset of size 1");
+        System.out.println("Itemset:");
+        int temp=0;
         while(rs.next())
         {
             String FItem = rs.getString("fp");
-            int temp=2;
-            int beg=1;
-                if(FItem.contains("-"))
+            if(FItem.equals("-"))
+                temp=1;
+            int beg=0;
+                if(temp>0)
                 {
-                    System.out.println("Itemset of size "+temp);
+                    System.out.println("Itemset:");
                     temp++;
                 for(int i=0;i<FItem.length();i++)
                 {     
@@ -85,9 +93,9 @@ public class Apriori {
                     }
                 }
                 }
-               
+               else
+                {
                     ResultSet rst=st.executeQuery("select item,num from map where num='"+FItem+"'");
-                    
                     while(rst.next())
                     {
                         String name =    rst.getString("item");
@@ -95,6 +103,7 @@ public class Apriori {
                         System.out.println(" "+name);
                         
                     }
+                }    
         }            
     }
  
@@ -244,8 +253,8 @@ public class Apriori {
                 writer.close();
          
                     
-        //AprioriCalculation ap = new AprioriCalculation();
-        //ap.aprioriProcess();
+        AprioriCalculation ap = new AprioriCalculation();
+        ap.aprioriProcess();
         
         
 
@@ -271,7 +280,7 @@ class AprioriCalculation
 {
     Vector<String> candidates=new Vector<String>(); //the current candidates
     String configFile="I:\\Text\\S8\\First Review\\config.txt"; //configuration file
-    String transaFile="I:\\Text\\S8\\First Review\\data.txt"; //transaction file
+    String transaFile="I:\\Text\\S8\\First Review\\abc.txt"; //transaction file
     String outputFile="I:\\Text\\S8\\First Review\\output.txt";//output file
     int numItems; //number of items per transaction
     int numTransactions; //number of transactions
