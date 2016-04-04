@@ -49,7 +49,7 @@ public class Apriori {
        }
     }
     
-    public static void PrintFPs(String[] D, String[] G,String[] Sec, String[] Cre, String[] Loc,Statement s,Statement st) throws SQLException
+    public static void PrintFPs(String[] D, String[] G,String[] Sec, String[] Cre, String[] Loc,Statement s,Statement st, Statement sI) throws SQLException
     {
         ResultSet rs=s.executeQuery("select * from fp");
         System.out.println("Itemset:");
@@ -76,7 +76,8 @@ public class Apriori {
                         {
                         String name =    rst.getString("item");
                         String num  =   rst.getString("num");  
-                        System.out.println(" "+name);
+                        //System.out.println(" "+name);
+                        
                         }
                     }
           
@@ -88,7 +89,8 @@ public class Apriori {
                         {
                         String name =    rst.getString("item");
                         String num  =   rst.getString("num");  
-                        System.out.println(" "+name);
+                        //System.out.println(" "+name);
+                        sI.executeUpdate("insert into fpC values ('"+name+"');");
                         }
                     }
                 }
@@ -106,6 +108,57 @@ public class Apriori {
                 }    
         }            
     }
+    
+    public static void print(Statement st, Statement sc) throws SQLException
+    {
+     String s = "select avg(gpa) from college where gender='M' and dept='EEE'";
+     
+     String val= new String();
+     String fin = new String();
+     for(int i=0;i<s.length();i++)
+     {
+         String res = new String();
+         if(s.charAt(i)=='\'')
+         {
+             i++;
+             while(s.charAt(i)!='\'')
+             {
+                 res+=s.charAt(i);
+                 i++;
+             }
+             ResultSet rs = st.executeQuery("SELECT num from map where item='"+res+"'");
+             while(rs.next())
+             {
+                 val = rs.getString("num");
+             }
+             fin+=val;
+             fin+=' ';
+         }
+         
+     }
+          int flag=0;
+         ResultSet r = sc.executeQuery("select fp from fp ");
+         while(r.next())
+         {
+             String fp = r.getString("fp");
+             if(fp.equals(fin.substring(0, fin.length()-1)))
+             {
+                 flag=1;
+                 break;
+             }
+         }
+         if(flag==1)
+             System.out.println("Query accepted!");
+         else
+             System.out.println("Query rejected! ");
+   }  
+    
+    public static void init(Statement s) throws SQLException
+    {
+        s.executeUpdate("delete from map");
+        s.executeUpdate("delete from fp");
+        s.executeUpdate("delete from fpC");
+    }
  
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException 
@@ -116,6 +169,9 @@ public class Apriori {
                 //Connection d = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "amrita123");
                 Statement st=c.createStatement();
                 Statement stc=c.createStatement();
+                Statement s=c.createStatement();
+                
+                init(s);
                 
                 Scanner in = new Scanner(System.in);
 
@@ -261,7 +317,8 @@ public class Apriori {
     BufferedReader inp = new BufferedReader(new FileReader("I:\\Text\\S8\\First Review\\output.txt"));
     String line = inp.readLine();
     PushToDB(line,st);
-    PrintFPs(D,G,Sec,Cre,Loc,st,stc);    
+    print(stc,s);
+    //PrintFPs(D,G,Sec,Cre,Loc,st,stc,s);    
         
                                  
     }
