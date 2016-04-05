@@ -109,9 +109,43 @@ public class Apriori {
         }            
     }
     
-    public static void print(Statement st, Statement sc) throws SQLException
+    public static boolean isOverlap(String s, Statement st) throws SQLException
     {
-     String s = "select avg(gpa) from college where gender='M' and dept='EEE'";
+        ResultSet rs = st.executeQuery("select * from fp");
+        while(rs.next())
+        {
+            String fp   = rs.getString("fp");
+            int bit  = rs.getInt("usedbit");
+            
+            if(fp.length()>s.length())
+            {
+                if(fp.contains(s))
+                {
+                    if(bit==1)
+                       return false;
+                }
+            }
+            else
+            {
+                if(s.contains(fp))
+                {
+                    if(bit==1)
+                       return false;
+                    
+                }
+            }
+        }
+        return true;
+    }
+    
+    public static void print(Statement st, Statement sc, Statement stmt, Statement O) throws SQLException
+    {
+     Scanner in = new Scanner(System.in);
+     int count=0;
+     while(count<3)
+     {     
+     System.out.println("Enter query!");
+     String s = in.nextLine();
      
      String val= new String();
      String fin = new String();
@@ -141,9 +175,10 @@ public class Apriori {
          while(r.next())
          {
              String fp = r.getString("fp");
-             if(fp.equals(fin.substring(0, fin.length()-1)))
+             if(fp.equals(fin.substring(0, fin.length()-1))&&isOverlap(fin.substring(0, fin.length()-1),O))
              {
                  flag=1;
+                 stmt.executeUpdate("update fp set usedbit=1 where fp='"+fp+"'");
                  break;
              }
          }
@@ -151,6 +186,8 @@ public class Apriori {
              System.out.println("Query accepted!");
          else
              System.out.println("Query rejected! ");
+         count++;
+     }   
    }  
     
     public static void init(Statement s) throws SQLException
@@ -170,6 +207,7 @@ public class Apriori {
                 Statement st=c.createStatement();
                 Statement stc=c.createStatement();
                 Statement s=c.createStatement();
+                Statement O=c.createStatement();
                 
                 init(s);
                 
@@ -317,7 +355,7 @@ public class Apriori {
     BufferedReader inp = new BufferedReader(new FileReader("I:\\Text\\S8\\First Review\\output.txt"));
     String line = inp.readLine();
     PushToDB(line,st);
-    print(stc,s);
+    print(stc,s,st,O);
     //PrintFPs(D,G,Sec,Cre,Loc,st,stc,s);    
         
                                  
@@ -337,7 +375,7 @@ class AprioriCalculation
 {
     Vector<String> candidates=new Vector<String>(); //the current candidates
     String configFile="I:\\Text\\S8\\First Review\\config.txt"; //configuration file
-    String transaFile="I:\\Text\\S8\\First Review\\abc.txt"; //transaction file
+    String transaFile="I:\\Text\\S8\\First Review\\data.txt"; //transaction file
     String outputFile="I:\\Text\\S8\\First Review\\output.txt";//output file
     int numItems; //number of items per transaction
     int numTransactions; //number of transactions
@@ -359,7 +397,7 @@ class AprioriCalculation
         //get config
         getConfig();
 
-        System.out.println("Apriori algorithm has started.\n");
+        //System.out.println("Apriori algorithm has started.\n");
 
         //start timer
         d = new Date();
@@ -378,8 +416,8 @@ class AprioriCalculation
             calculateFrequentItemsets(itemsetNumber);
             if(candidates.size()!=0)
             {
-                System.out.println("Frequent " + itemsetNumber + "-itemsets");
-                System.out.println(candidates);
+                //System.out.println("Frequent " + itemsetNumber + "-itemsets");
+                //System.out.println(candidates);
             }
         //if there are <=1 frequent items, then its the end. This prevents reading through the database again. When there is only one frequent itemset.
         }while(candidates.size()>1);
@@ -442,36 +480,36 @@ class AprioriCalculation
 
         String input="";
         //ask if want to change the config
-        System.out.println("Default Configuration: ");
+        /*System.out.println("Default Configuration: ");
         System.out.println("\tRegular transaction file with '" + itemSep + "' item separator.");
         System.out.println("\tConfig File: " + configFile);
         System.out.println("\tTransa File: " + transaFile);
         System.out.println("\tOutput File: " + outputFile);
         System.out.println("\nPress 'C' to change the item separator, configuration file and transaction files");
-        System.out.print("or any other key to continue.  ");
-        input=getInput();
+        System.out.print("or any other key to continue.  ");*/
+        //input=getInput();
 
         if(input.compareToIgnoreCase("c")==0)
         {
-            System.out.print("Enter new transaction filename (return for '"+transaFile+"'): ");
-            input=getInput();
+            //System.out.print("Enter new transaction filename (return for '"+transaFile+"'): ");
+            //input=getInput();
             if(input.compareToIgnoreCase("")!=0)
                 transaFile=input;
 
-            System.out.print("Enter new configuration filename (return for '"+configFile+"'): ");
-            input=getInput();
+            //System.out.print("Enter new configuration filename (return for '"+configFile+"'): ");
+            //input=getInput();
             if(input.compareToIgnoreCase("")!=0)
                 configFile=input;
 
-            System.out.print("Enter new output filename (return for '"+outputFile+"'): ");
-            input=getInput();
+            //System.out.print("Enter new output filename (return for '"+outputFile+"'): ");
+            //input=getInput();
             if(input.compareToIgnoreCase("")!=0)
                 outputFile=input;
 
-            System.out.println("Filenames changed");
+            //System.out.println("Filenames changed");
 
-            System.out.print("Enter the separating character(s) for items (return for '"+itemSep+"'): ");
-            input=getInput();
+            //System.out.print("Enter the separating character(s) for items (return for '"+itemSep+"'): ");
+            //input=getInput();
             if(input.compareToIgnoreCase("")!=0)
                 itemSep=input;
 
@@ -492,19 +530,19 @@ class AprioriCalculation
              minSup=(Double.valueOf(data_in.readLine()).doubleValue());
 
              //output config info to the user
-             System.out.print("\nInput configuration: "+numItems+" items, "+numTransactions+" transactions, ");
-             System.out.println("minsup = "+minSup+"%");
-             System.out.println();
+             //System.out.print("\nInput configuration: "+numItems+" items, "+numTransactions+" transactions, ");
+             //System.out.println("minsup = "+minSup+"%");
+             //System.out.println();
              minSup/=100.0;
 
             oneVal = new String[numItems];
-            System.out.print("Enter 'y' to change the value each row recognizes as a '1':");
+           // System.out.print("Enter 'y' to change the value each row recognizes as a '1':");
             if(getInput().compareToIgnoreCase("y")==0)
             {
-                for(int i=0; i<oneVal.length; i++)
+                //for(int i=0; i<oneVal.length; i++);
                 {
-                    System.out.print("Enter value for column #" + (i+1) + ": ");
-                    oneVal[i] = getInput();
+                    //System.out.print("Enter value for column #" + (i+1) + ": ");
+                    //oneVal[i] = getInput();
                 }
             }
             else
