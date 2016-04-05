@@ -215,7 +215,7 @@ public class Apriori {
 
                 ResultSet rs = stc.executeQuery("select DISTINCT(gender) from college");
                 
-                String[] G = new String[3];
+                String[] G = new String[2];
                 int i=0;
                 while(rs.next())
                 {
@@ -229,7 +229,7 @@ public class Apriori {
                 
                 rs = stc.executeQuery("select DISTINCT(dept) from college");
                 
-                String[] D = new String[5];
+                String[] D = new String[4];
                 i=0;
                 while(rs.next())
                 {
@@ -342,10 +342,17 @@ public class Apriori {
                    i++;
                 } 
                 
-                //System.out.println(i+" "+(G.length+D.length+Sec.length+Cre.length+Loc.length));
+                System.out.println(i+" "+(G.length+D.length+Sec.length+Cre.length+Loc.length));
+                
                 
                 writer.close();
-         
+                
+                writer = new PrintWriter("I:\\Text\\S8\\First Review\\config.txt", "UTF-8");
+                writer.println(G.length+D.length+Sec.length+Cre.length+Loc.length);
+                writer.println(i);
+                writer.println("20");
+                
+                writer.close();
                     
         AprioriCalculation ap = new AprioriCalculation();
         ap.aprioriProcess();
