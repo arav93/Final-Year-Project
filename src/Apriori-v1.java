@@ -14,13 +14,15 @@ public class JavaApplication20 {
     
     public static void ExecQuery(String s, Statement st) throws SQLException
     {
-        ResultSet rs = st.executeQuery(s);
+        ResultSet rs = st.executeQuery(s.replace("avg(gpa)","gpa"));
         float val=0;
+        int count=0;
         while(rs.next())
         {
-            val=rs.getFloat("gpa");
+            val+=rs.getFloat("gpa");
+            count++;
         }
-       
+        val = (float) val/count;
         System.out.println("The average gpa is "+val);
     }
     
@@ -180,7 +182,6 @@ public class JavaApplication20 {
          }
          if(flag==1)
          { 
-             System.out.println("Query accepted!");
              ExecQuery(s,st);
          }   
          else
@@ -375,4 +376,3 @@ public class JavaApplication20 {
             e.printStackTrace();
         }}
 }
-
