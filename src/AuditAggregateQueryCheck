@@ -1,0 +1,105 @@
+
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Scanner;
+
+
+public class NewMain {
+
+     public static boolean QueryCheck(String s)
+     {
+         
+         if(s.contains(" gpa ") ||  s.contains(" * ") || s.contains(",gpa ") || s.contains(" gpa,"))
+             return false;
+         if(!(s.contains(" average(")|| s.contains("sum(")|| s.contains("max(")))
+             return false;
+         else return true;
+         
+     }
+     
+     public static int n;
+     
+     public static void FindSize(Statement sti) throws SQLException
+     {
+         ResultSet rst=sti.executeQuery("select * from college_temp");
+            int count=0;
+            while(rst.next())
+            {
+                count++;
+            }
+            n = count;
+     }
+     
+     public static boolean QuerySizeCheck(String s,Statement sti) throws SQLException
+     {
+         ResultSet rst=sti.executeQuery(s.replace("average(gpa)", "gpa"));
+            int count=0;
+            while(rst.next())
+            {
+                count++;
+            }
+            
+            if(count==1)
+               return false;
+            
+            if(count+1==n)
+                return false;
+            else
+                return true;
+     }
+     
+     public static void QueryExecute(String s,Statement sti) throws SQLException
+     {
+         s=s.replace("average(gpa)", "gpa");
+         
+         ResultSet rst=sti.executeQuery(s);
+         
+         
+         rst = sti.executeQuery(s);
+         
+         float gpa=0;
+         int count=0;
+         while(rst.next())
+         {
+             Float gpA=rst.getFloat("gpa");
+             gpa+=gpA;
+             count++;
+         }
+         gpa=(float)gpa/count;
+         System.out.println("The average is "+gpa);
+         
+     }
+     
+    
+    public static void main(String[] args) {
+        try{
+                Class.forName("org.postgresql.Driver");
+                Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "amrita123");
+              
+                Statement st=c.createStatement();
+                
+                Scanner in = new Scanner(System.in);
+                
+                ResultSet rs = st.executeQuery("select * from college_temp");
+                
+                FindSize(st);
+                
+                System.out.println("Enter the query");
+                String s = in.nextLine();
+                
+                if(QueryCheck(s)&&QuerySizeCheck(s,st))
+                        QueryExecute(s,st);
+                     
+
+           }   
+        catch (Exception ex) 
+        {
+           ex.printStackTrace();
+        }
+    }
+}
