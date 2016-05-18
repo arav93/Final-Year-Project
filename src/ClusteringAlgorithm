@@ -1,0 +1,109 @@
+
+package javaapplication18;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Scanner;
+
+public class JavaApplication18 {
+    
+    public static void runQuery(String s,Statement st) throws SQLException
+    {
+        float val = 0;
+        ResultSet rs = st.executeQuery(s);
+        int count=0;
+        while(rs.next())
+        {
+            val+=rs.getFloat("gpa");
+            count++;
+        }
+        val = (float) val/count;
+        System.out.println("The average gpa is "+val);
+    }
+    
+    public static int Exec(Statement st,String s) throws SQLException
+    {
+       int count;
+       ResultSet rs;
+       rs = st.executeQuery("select DISTINCT(gender) from tempD");
+       count=0;
+       while(rs.next())
+       {
+          count++; 
+       }
+       if(count==1)
+       {
+           return 1;
+       }
+       rs = st.executeQuery("select DISTINCT(dept) from tempD");
+       count=0;
+       while(rs.next())
+       {
+          count++; 
+       }
+       if(count==1)
+       {
+           return 1;
+       }
+       rs = st.executeQuery("select DISTINCT(sec) from tempD");
+       count=0;
+       while(rs.next())
+       {
+          count++; 
+       }
+       if(count==1)
+       {
+           return  1;
+       }
+       rs = st.executeQuery("select DISTINCT(credits) from tempD");
+       count=0;
+       while(rs.next())
+       {
+          count++; 
+       }
+       if(count==1)
+       {
+           return 1;
+       }
+       rs = st.executeQuery("select DISTINCT(location) from tempD");
+       count=0;
+       while(rs.next())
+       {
+          count++; 
+       }
+       if(count==1)
+       {
+           System.out.println("Accepted!");
+           return 1;
+       }
+          System.out.println("Rejected!");
+          return 0;
+    }
+
+    public static void main(String[] args) 
+    {
+        try{
+                Class.forName("org.postgresql.Driver");
+                Connection c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "amrita123");
+                Statement st=c.createStatement();
+                st.executeUpdate("drop view tempD");
+                Scanner in = new Scanner(System.in);
+                System.out.println("Enter the query!");
+                String s = in.nextLine();
+                s=s.replace("avg(gpa)", "gender,dept,sec,credits,location ");
+                st.executeUpdate("create view tempD as "+s);
+                int f=Exec(st,s);
+                if(f==1)
+                runQuery(s.replace("gender,dept,sec,credits,location ","gpa"),st);
+                
+                            
+        }   
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+}
