@@ -136,15 +136,43 @@ public class JavaApplication20 {
         return true;
     }
     
+    public static int NegCheck(Statement st, String s) throws SQLException
+    {
+        int count=0;
+        s = s.replace("!", " ");
+        s = s.replace("avg(gpa)", "roll ");
+        ResultSet rs = st.executeQuery(s);
+        while(rs.next())
+        {
+            System.out.println(rs.getString("roll"));
+            count++;
+        }
+        if(count==1)
+        {
+            //System.out.println(s);
+            return 1;
+        }
+        else
+            return 0;
+    }
+    
     public static void print(Statement st, Statement sc, Statement stmt, Statement O) throws SQLException
     {
      Scanner in = new Scanner(System.in);
-     int count=0;
-     while(count<3)
-     {     
+     String ch = new String("Y");
+    while(!ch.equals("N"))
+    {    
      System.out.println("Enter query!");
      String s = in.nextLine();
-     
+     if(s.contains("!"))
+     {
+         int flag=NegCheck(st,s);
+         if(flag==1)
+         {
+             System.out.println("Query rejected!");
+             continue;
+         }
+     }
      String val= new String();
      String fin = new String();
      for(int i=0;i<s.length();i++)
@@ -186,8 +214,9 @@ public class JavaApplication20 {
          }   
          else
              System.out.println("Query rejected! ");
-         count++;
-     }   
+         System.out.println("One more query?(Y/N)");
+          ch=in.nextLine();
+    }
    }  
     
     public static void init(Statement s) throws SQLException
@@ -376,3 +405,5 @@ public class JavaApplication20 {
             e.printStackTrace();
         }}
 }
+
+
